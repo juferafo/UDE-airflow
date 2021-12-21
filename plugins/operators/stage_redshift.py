@@ -9,17 +9,17 @@ class StageToRedshiftOperator(BaseOperator):
     @apply_defaults
     def __init__(
         self,
-        aws_credentials_id="",
-        redshift_conn_id="",
-        redshift_schema="",
-        redshift_table="",
-        s3_bucket="",
-        s3_key="",
-        region = "",
-        format="",
+        aws_credentials_id: str = None,
+        redshift_conn_id: str = None,
+        redshift_schema: str = None,
+        redshift_table: str = None,
+        s3_bucket: str = None,
+        s3_key: str = None,
+        region: str = None,
+        format: str = None,
         *args, 
         **kwargs
-    ):
+    ) -> None:
 
         super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
         self.aws_credentials_id = aws_credentials_id

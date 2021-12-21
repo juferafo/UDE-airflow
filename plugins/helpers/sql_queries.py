@@ -11,6 +11,22 @@ class SqlQueriesDrop:
         DROP TABLE IF EXISTS public.songplays
     """
 
+    dimension_users_drop = """
+        DROP TABLE IF EXISTS public.users
+    """
+
+    dimension_songs_drop = """
+        DROP TABLE IF EXISTS public.songs
+    """
+
+    dimension_artists_drop = """
+        DROP TABLE IF EXISTS public.artists
+    """
+
+    dimension_time_drop = """
+        DROP TABLE IF EXISTS public.time
+    """
+
     staging = {
         "staging_events": staging_events_drop,
         "staging_songs": staging_songs_drop
@@ -21,7 +37,10 @@ class SqlQueriesDrop:
     }
 
     dimensions = {
-        
+        "artists": dimension_artists_drop,
+        "users": dimension_users_drop,
+        "time": dimension_time_drop,
+        "songs": dimension_songs_drop
     }
 
 
@@ -142,6 +161,7 @@ class SqlQueriesCreate:
 
 
 class SqlQueriesInsert:
+
     fact_songplay_table = ("""
         SELECT
                 md5(events.sessionid || events.start_time) songplay_id,
@@ -194,3 +214,6 @@ class SqlQueriesInsert:
         "time": dimension_table_time,
         "songs": dimension_table_songs
     }
+
+class SqlQueriesQualityChecks:
+    tables = {}
