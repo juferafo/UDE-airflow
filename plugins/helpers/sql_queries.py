@@ -214,6 +214,3 @@ class SqlQueriesInsert:
         "time": dimension_table_time,
         "songs": dimension_table_songs
     }
-
-class SqlQueriesQualityChecks:
-    tables = {}
