@@ -33,7 +33,7 @@ class SqlQueriesDrop:
     }
 
     fact = {
-        "songplay": fact_songplays_drop
+        "songplays": fact_songplays_drop
     }
 
     dimensions = {
@@ -46,7 +46,7 @@ class SqlQueriesDrop:
 
 class SqlQueriesCreate:
     staging_events_create = """
-        CREATE TABLE public.staging_events (
+        CREATE TABLE IF NOT EXISTS public.staging_events (
             artist varchar(256),
             auth varchar(256),
             firstname varchar(256),
@@ -69,7 +69,7 @@ class SqlQueriesCreate:
     """
 
     staging_songs_create = """
-        CREATE TABLE public.staging_songs (
+        CREATE TABLE IF NOT EXISTS public.staging_songs (
             num_songs int4,
             artist_id varchar(256),
             artist_name varchar(256),
@@ -84,7 +84,7 @@ class SqlQueriesCreate:
     """
 
     fact_table_songplays = """
-        CREATE TABLE public.songplays (
+        CREATE TABLE IF NOT EXISTS public.songplays (
             playid varchar(32) NOT NULL,
             start_time timestamp NOT NULL,
             userid int4 NOT NULL,
@@ -99,7 +99,7 @@ class SqlQueriesCreate:
     """
 
     dimension_table_artists = """
-        CREATE TABLE public.artists (
+        CREATE TABLE IF NOT EXISTS public.artists (
             artistid varchar(256) NOT NULL,
             name varchar(256),
             location varchar(256),
@@ -109,7 +109,7 @@ class SqlQueriesCreate:
     """
 
     dimension_table_users = """
-        CREATE TABLE public.users (
+        CREATE TABLE IF NOT EXISTS public.users (
             userid int4 NOT NULL,
             first_name varchar(256),
             last_name varchar(256),
@@ -120,7 +120,7 @@ class SqlQueriesCreate:
     """
 
     dimension_table_time = """
-        CREATE TABLE public."time" (
+        CREATE TABLE IF NOT EXISTS public."time" (
             start_time timestamp NOT NULL,
             "hour" int4,
             "day" int4,
@@ -133,7 +133,7 @@ class SqlQueriesCreate:
     """
 
     dimension_table_songs = """
-        CREATE TABLE public.songs (
+        CREATE TABLE IF NOT EXISTS public.songs (
             songid varchar(256) NOT NULL,
             title varchar(256),
             artistid varchar(256),

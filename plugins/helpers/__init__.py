@@ -1,5 +1,11 @@
-from helpers.sql_queries import SqlQueries
+from helpers.sql_queries import SqlQueriesDrop
+from helpers.sql_queries import SqlQueriesCreate
+from helpers.sql_queries import SqlQueriesInsert
+from helpers.sql_queries import SqlQueriesQualityChecks
 
 __all__ = [
-    'SqlQueries',
+    'SqlQueriesDrop',
+    'SqlQueriesCreate',
+    'SqlQueriesInsert',
+    'SqlQueriesQualityChecks'
 ]
