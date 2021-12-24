@@ -1,17 +1,16 @@
 from datetime import datetime, timedelta
-import os
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.postgres_operator import PostgresOperator
 
-from airflow.operators import StageToRedshiftOperator
-from airflow.operators import LoadFactOperator
-from airflow.operators import LoadDimensionOperator
-from airflow.operators import DataQualityOperator
-
 from helpers import SqlQueriesCreate
 from helpers import SqlQueriesInsert
+
+from operators import StageToRedshiftOperator
+from operators import LoadFactOperator
+from operators import LoadDimensionOperator
+from operators import DataQualityOperator
 
 default_args = {
     'owner': 'airflow',
@@ -41,16 +40,16 @@ aws_conn_id = Variable.get('aws_credentials', 'aws_credentials')
 redshift_schema = 'public'
 
 with DAG(
-    'formacion_sparkify_pipeline',
+    'sparkify_pipeline',
     default_args=default_args,
     description='Load and transform data in Redshift with Airflow',
     schedule_interval=None
 ) as dag:
 
-    start = DummyOperator(task_id='Begin_execution', dag=dag)
+    start = DummyOperator(task_id='Start', dag=dag)
 
-    end = DummyOperator(task_id='End_execution', dag=dag)
-
+    end = DummyOperator(task_id='End', dag=dag)
+    
     create_fact_table = PostgresOperator(
         task_id=f'create_fact_table_songplays',
         dag=dag,
@@ -66,7 +65,7 @@ with DAG(
         redshift_table=dwh_star_tables['fact'],
         query=SqlQueriesInsert.fact['songplays']
     )
-
+    
     create_staging_table = {}
     copy_s3_data = {}
 
@@ -90,7 +89,7 @@ with DAG(
             region="us-west-2",
             format=dwh_staging_tables[staging_area]['format']
         )
-        
+
         start >> create_staging_table[staging_area] 
         create_staging_table[staging_area] >> copy_s3_data[staging_area]
         
@@ -130,5 +129,4 @@ with DAG(
         load_fact_table >> create_dimension_table[dimension_table] 
         create_dimension_table[dimension_table] >> load_dimension_table[dimension_table] 
         load_dimension_table[dimension_table]  >> run_quality_checks
-
-    run_quality_checks >> end
+        run_quality_checks >> end
