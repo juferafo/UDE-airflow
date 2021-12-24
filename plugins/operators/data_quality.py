@@ -38,5 +38,5 @@ class DataQualityOperator(BaseOperator):
         if num_records < 1:
             raise ValueError(f"Data quality check failed. {self.redshift_schema}{self.redshift_table} contained 0 rows")
             
-        logging.info(f"Data quality on table {self.redshift_schema}{self.redshift_table} check passed with {num_records[0][0]} records")
+        self.log.info(f"Data quality on table {self.redshift_schema}{self.redshift_table} check passed with {num_records} records")
         
