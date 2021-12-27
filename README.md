@@ -1,5 +1,7 @@
 # UDE-airflow
 
+In previous repositories real life scenarios related to Data Warehouses (DWH) and Data Lakes (DL) were presented
+
 ## Project datasets
 
 As mentioned in the introduction, we are going to process the information present in the song and the log datasets.They encapsulate different information and, therefore, their schema is also different.
@@ -126,3 +128,10 @@ last_name VARCHAR,
 gender VARCHAR,
 level VARCHAR
 ```
+
+### DAG pipeline
+
+### Requirements
+
+1. Apache Airflow
+2. Python 3
