@@ -75,7 +75,10 @@ The above datasets are placed in the S3 buckets shown below.
 * Song data bucket: `s3://udacity-dend/song_data`
 * Log data bucket: `s3://udacity-dend/log_data`
 
-## Redshift star-schema
+## Redshift structure
+
+As mentioned in the descriptions, redshift will be the end place of the log and song data. This information will be re-shaped in the form of a star-schema where `songplays` will be the fact table that encapsulates the songs played by the customers and `artist`, `song`, `time` and `user` provide additional details to certain particularities of the data in the fact table. Below one can find the schema of each of these tables.
+
 
 ##### `songplays` fact table
 
@@ -133,9 +136,11 @@ gender VARCHAR,
 level VARCHAR
 ```
 
-### DAG pipeline
+## Apache Airflow pipeline
+
+
 
 ### Requirements
 
-1. Apache Airflow
-2. Python 3
+1. [Apache Airflow](https://airflow.apache.org/)
+2. [Python 3](https://www.python.org/)
