@@ -40,7 +40,7 @@ dwh_star_tables = {
 
 s3_bucket = Variable.get('s3_bucket', 'udacity-dend')
 redshift_conn_id = Variable.get('redshift_conn_id', 'redshift_conn_id')
-aws_conn_id = Variable.get('aws_credentials', 'aws_credentials')
+aws_conn_id = 'aws_credentials'
 
 redshift_schema = 'public'
 
