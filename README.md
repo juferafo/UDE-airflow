@@ -1,10 +1,8 @@
 # UDE-airflow
 
-In previous repositories we have presented ilustrated real life scenarios in the context of the Data Engineering. We have explored the normalization and denormalization of data-sets and how these models fit in [SQL (PostgreSQL)](https://github.com/juferafo/UDE-postgres) and [no-SQL (Casandra)](https://github.com/juferafo/UDE-cassandra) models, the underlying structure of [Data Warehouses (Redshift)](https://github.com/juferafo/UDE-redshift) (DWH) and [Data Lakes (S3)](https://github.com/juferafo/UDE-data-lake) (DL) and why it is useful to make use of cloud providers to host these resources. 
+In previous repositories we have presented real life scenarios in the context of the Data Engineering like the normalization and denormalization of data-sets and how these models fit in [SQL (PostgreSQL)](https://github.com/juferafo/UDE-postgres) and [no-SQL (Casandra)](https://github.com/juferafo/UDE-cassandra) models, the underlying structure of [Data Warehouses (Redshift)](https://github.com/juferafo/UDE-redshift) (DWH) and [Data Lakes (S3)](https://github.com/juferafo/UDE-data-lake) (DL) and why it is advantageous to make use of cloud providers to host these resources. 
 
-Following the line of these repositories we present here the use case where our company (Sparkify) needs to feed the Data Warehouse hosted in [Redshift](https://aws.amazon.com/redshift/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc) with fresh data in a regular basis. 
-
-To acompish this task we will employ [Apache Airflow](https://airflow.apache.org/). Apache Airflow is an open-source orquestration tool that is widely used to configure and trigger data pipelines both on a regular basis and on demand. In our case, the pipeline will read fresh data from the staging area located in Amazon S3, perform transformations on it if needed, and insert the data in Redshift where the information is organized as a [star-shaped schema](https://www.guru99.com/star-snowflake-data-warehousing.html). 
+In the line of these repositories we present here the following use case: our company (Sparkify) needs to feed the Data Warehouse hosted in [Redshift](https://aws.amazon.com/redshift/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc) with fresh data in a regular basis. To accomplish this task we will employ [Apache Airflow](https://airflow.apache.org/) that is a  widely used open-source orchestration tool employed to configure and trigger data pipelines both on a regular basis (daily, weekely) and on demand. In our case, the pipeline will read fresh data from the located in Amazon S3, perform transformations on it (if needed), and insert the data in Redshift where the information is organized as a [star-shaped schema](https://www.guru99.com/star-snowflake-data-warehousing.html). 
 
 ## Project datasets
 
@@ -12,7 +10,7 @@ We are going to process data related to the customer's usage of a music app. Thi
 
 ### Song dataset
 
-The song dataset is a subset of the [Million Song Dataset](http://millionsongdataset.com/) and it contains information about the songs available in the music app. The records are categorized, among other fields, by artist ID, song ID, title, duration, etc... Each row is written as a JSON file with the following schema and file structure.
+The song dataset is a subset of the [Million Song Dataset](http://millionsongdataset.com/) and it contains information about the songs available in the music app. Among other fields, the records are categorized by: artist ID, song ID, title, duration, etc... Each row is written as a JSON file with the following schema and file structure.
 
 ```
 /PATH/TO/song_data/
@@ -46,7 +44,7 @@ Example of a song data file.
 
 ### Log dataset
 
-The log dataset contains information about the user interaction with the app (sign-in/out, user ID, registration type, listened songs, etc...). This dataset was built from the events simulator [eventsim](https://github.com/Interana/eventsim) and, like the song dataset, the information is stored in JSON files. Below you can find the schema of the log dataset.
+The log dataset contains information about the user interaction with the app (sign-in/out, user ID, registration type, connection string, listened songs, etc...). This dataset was built from the events simulator [eventsim](https://github.com/Interana/eventsim) and, like the song dataset, the information is stored in JSON files. Below you can find the schema of the log dataset.
 
 ```
 {
@@ -77,7 +75,7 @@ The above datasets are placed in the S3 buckets shown below.
 
 ## Redshift structure
 
-As mentioned in the descriptions, redshift will be the end place of the log and song data. This information will be re-shaped in the form of a star-schema where `songplays` will be the fact table that encapsulates the songs played by the customers and `artist`, `song`, `time` and `user` provide additional details to certain particularities of the data in the fact table. Below one can find the schema of each of these tables.
+As mentioned above, Redshift will be the end place of the log and song data. This information will be re-shaped in the form of a star-schema where `songplays` will be the fact table that encapsulates the songs played by the customers and `artist`, `song`, `time` and `user` provide additional details to certain particularities of the data in the fact table. Below one can find the schema of each of these tables.
 
 
 ##### `songplays` fact table
@@ -138,7 +136,7 @@ level VARCHAR
 
 ## Data pipeline
 
-As mentioned in the introduction, Apache Airflow is an orchestration tool employed to trigger ETL pipelines at a given schedule. These pipelines group together a set of tasks like, for example, execute a query against a database. The DAGs must be designed without loops and, because of this, they are known as Diagramatic Acyclic Graphs or DAGs. The pipelines are written in Python code and each task is instanciated as an [Airflow Operator](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/index.html). Despite existing a wide range of operators already included in the [Airflow library](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/operators/index.html) it is possible to code a customized one or to add new features to an already existing operator to suits the user's needs.
+As mentioned in the introduction, Apache Airflow is an orchestration tool employed to trigger ETL pipelines at a given schedule. These pipelines group together a set of tasks like, for example, execute a query against a database. The pipelines must be designed without any loop and, because of this particularity, they are known as Diagrammatic Acyclic Graphs or DAGs. The pipelines are coded in Python and each task is instantiated as an [Airflow Operator](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/index.html). Despite of the wide range of operators already included in the [Airflow library](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/operators/index.html) it is possible to design a customized one or to add new features to an already existing operator to suit the user's needs.
 
 ### DAG pipeline
 
@@ -150,7 +148,7 @@ The DAG can be found in the script `./dags/sparkify_dag.py` and, although it is 
 
 2. The set of tasks that read the `events` and `songs` in the Redshift Staging Area and put this information into a star-schema.
 
-![star_schema_etl](./figs/star_schema_etl.png)
+![star_schema_etl](./figs/start_schema_etl.png)
 
 Below you can find the DAG pipeline from `Start` to `End`.
 
@@ -158,15 +156,15 @@ Below you can find the DAG pipeline from `Start` to `End`.
 
 #### Custom operators
 
-To simplify and make the DAG code easier to read four [custom operators](https://airflow.apache.org/docs/apache-airflow/stable/howto/custom-operator.html) were designed:
+Four [custom operators](https://airflow.apache.org/docs/apache-airflow/stable/howto/custom-operator.html) were designed to make the DAG code easier to understand:
 
-1. `StageToRedshiftOperator`: This operator was coded to copy data from S3 into Redshift. In the pipeline ilustrated above it is used in the steps `S3_Copy_staging_events` and `S3_Copy_staging_songs`.
+1. `StageToRedshiftOperator`: this operator was coded to copy data from S3 into Redshift.
 
-2. `LoadFactOperator`: This operator is used to load data into the fact table `songplays`.
+2. `LoadFactOperator`: this operator is used to load data into the fact table `songplays`.
 
-3. `LoadDimensionOperator`: This operator is used to load data into the dimension tables `artists`, `songs`, `time` and `users`.
+3. `LoadDimensionOperator`: this operator is used to load data into the dimension tables `artists`, `songs`, `time` and `users`.
 
-4. `DataQualityOperator`: This operator is used to check the quality of the data loaded into Redshift.
+4. `DataQualityOperator`: this operator is used to check the quality of the data loaded into Redshift.
 
 The code of these operators and additional helper classes can be found in `./plugins/operators` and `./plugins/helpers/sql_queries.py`.
 
