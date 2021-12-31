@@ -136,11 +136,49 @@ gender VARCHAR,
 level VARCHAR
 ```
 
-## Apache Airflow pipeline
+## Data pipeline
 
+As mentioned in the introduction, Apache Airflow is an orchestration tool employed to trigger ETL pipelines at a given schedule. These pipelines group together a set of tasks like, for example, execute a query against a database. The DAGs must be designed without loops and, because of this, they are known as Diagramatic Acyclic Graphs or DAGs. The pipelines are written in Python code and each task is instanciated as an [Airflow Operator](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/index.html). Despite existing a wide range of operators already included in the [Airflow library](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/operators/index.html) it is possible to code a customized one or to add new features to an already existing operator to suits the user's needs.
 
+### DAG pipeline
 
-### Requirements
+The DAG can be found in the script `./dags/sparkify_dag.py` and, although it is executed from `Start` to `End` one can find the following division in the pipeline:
+
+1. The set of tasks that copy the raw `events` and `songs` data into the Redshift Staging Area
+
+![staging_etl](./figs/staging_etl.png)
+
+2. The set of tasks that read the `events` and `songs` in the Redshift Staging Area and put this information into a star-schema.
+
+![star_schema_etl](./figs/star_schema_etl.png)
+
+Below you can find the DAG pipeline from `Start` to `End`.
+
+![dag](./figs/dag.png)
+
+#### Custom operators
+
+To simplify and make the DAG code easier to read four [custom operators](https://airflow.apache.org/docs/apache-airflow/stable/howto/custom-operator.html) were designed:
+
+1. `StageToRedshiftOperator`: This operator was coded to copy data from S3 into Redshift. In the pipeline ilustrated above it is used in the steps `S3_Copy_staging_events` and `S3_Copy_staging_songs`.
+
+2. `LoadFactOperator`: This operator is used to load data into the fact table `songplays`.
+
+3. `LoadDimensionOperator`: This operator is used to load data into the dimension tables `artists`, `songs`, `time` and `users`.
+
+4. `DataQualityOperator`: This operator is used to check the quality of the data loaded into Redshift.
+
+The code of these operators and additional helper classes can be found in `./plugins/operators` and `./plugins/helpers/sql_queries.py`.
+
+### Apache Airflow configuration
+
+The data pipeline needs to access certain services from AWS like S3 or Redshift. For this purpose it is necessary to set-up two [connections](https://airflow.apache.org/docs/apache-airflow/stable/howto/connection.html) with the following IDs:
+
+1. `aws_credentials`: this connection must be configured as `Amazon Web Services` and it will contain the AWS credentials. This is required, for example, to read data from S3. 
+
+2. `redshift_conn_id`: this connection must be configured as `Postgres` and it will encapsulate the endpoint, schema, login and password to access the Redshift cluster.
+
+## Requirements
 
 1. [Apache Airflow](https://airflow.apache.org/)
 2. [Python 3](https://www.python.org/)
