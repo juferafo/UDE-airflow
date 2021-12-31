@@ -12,6 +12,7 @@ class LoadDimensionOperator(BaseOperator):
         redshift_schema : str = None,
         redshift_table : str = None,
         query : str = None,
+        mode : str = 'append',
         *args,
         **kwargs
     ):
@@ -21,15 +22,26 @@ class LoadDimensionOperator(BaseOperator):
         self.redshift_schema = redshift_schema
         self.redshift_table = redshift_table
         self.query = query
+        self.mode = mode
 
     def execute(self, context):
+
+        redshift_hook = PostgresHook(postgres_conn_id=self.redshift_conn_id)
 
         sql_insert = f"""
             INSERT INTO {self.redshift_schema}.{self.redshift_table} 
             {self.query}
         """
 
-        redshift_hook = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+        if self.mode == 'truncate':
+            sql_truncate = f"""
+                TRUNCATE TABLE {self.redshift_schema}.{self.redshift_table}
+            """
+
+            self.log.info(f"Truncate mode selected")
+            self.log.info(f'Truncating {self.redshift_schema}.{self.redshift_table} dimension table before inserting data')
+            self.log.info(f'{sql_truncate}')
+            redshift_hook.run(sql_truncate)
 
         self.log.info(f'Loading {self.redshift_table} dimension table data into {self.redshift_schema}.{self.redshift_table}')
         self.log.info('Executing query')
