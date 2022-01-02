@@ -23,6 +23,7 @@ class LoadDimensionOperator(BaseOperator):
         self.redshift_table = redshift_table
         self.query = query
         self.mode = mode
+            
 
     def execute(self, context):
 

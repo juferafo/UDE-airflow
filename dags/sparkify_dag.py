@@ -15,7 +15,7 @@ from operators import DataQualityOperator
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2019, 1, 12),
+    'start_date': datetime(2022, 1, 2),
     'depends_on_past': False,
     'retries': 3,
     'retry_delay': timedelta(minutes=5),
@@ -48,27 +48,13 @@ with DAG(
     'sparkify_pipeline',
     default_args=default_args,
     description='Load and transform data in Redshift with Airflow',
-    schedule_interval='@hourly'
+    schedule_interval=None
 ) as dag:
 
     start = DummyOperator(task_id='Start', dag=dag)
 
     end = DummyOperator(task_id='End', dag=dag)
     
-    '''drop_fact_table = PostgresOperator(
-        task_id=f'Drop_fact_table_songplays',
-        dag=dag,
-        postgres_conn_id=redshift_conn_id,
-        sql=SqlQueriesDrop.fact["songplays"]
-    )
-    
-    create_fact_table = PostgresOperator(
-        task_id=f'Create_fact_table_songplays',
-        dag=dag,
-        postgres_conn_id=redshift_conn_id,
-        sql=SqlQueriesCreate.fact["songplays"]
-    )'''
-
     load_fact_table = LoadFactOperator(
         task_id='Load_fact_table_songplays',
         dag=dag,
@@ -78,24 +64,9 @@ with DAG(
         query=SqlQueriesInsert.fact['songplays']
     )
     
-    '''drop_staging_table = {}
-    create_staging_table = {}'''
     copy_s3_data = {}
 
     for staging_area in dwh_staging_tables:
-        '''drop_staging_table[staging_area] = PostgresOperator(
-            task_id=f'Drop_staging_table_{staging_area}',
-            dag=dag,
-            postgres_conn_id=redshift_conn_id,
-            sql=SqlQueriesDrop.staging[staging_area]
-        )
-        
-        create_staging_table[staging_area] = PostgresOperator(
-            task_id=f'Create_staging_table_{staging_area}',
-            dag=dag,
-            postgres_conn_id=redshift_conn_id,
-            sql=SqlQueriesCreate.staging[staging_area]
-        )'''
 
         copy_s3_data[staging_area] = StageToRedshiftOperator(
             task_id=f'S3_Copy_{staging_area}',
@@ -110,37 +81,12 @@ with DAG(
             format=dwh_staging_tables[staging_area]['format']
         )
 
-        '''start >> drop_staging_table[staging_area] 
-        drop_staging_table[staging_area] >> create_staging_table[staging_area] 
-        create_staging_table[staging_area] >> copy_s3_data[staging_area]
-        
-        copy_s3_data[staging_area] >> drop_fact_table
-    
-    drop_fact_table >> create_fact_table
-    create_fact_table >> load_fact_table'''
-
-
         start >> copy_s3_data[staging_area]
         copy_s3_data[staging_area] >> load_fact_table
 
-    '''drop_dimension_table = {}
-    create_dimension_table = {}'''
     load_dimension_table = {}
     
     for dimension_table in dwh_star_tables['dimensions']:
-        '''drop_dimension_table[dimension_table] = PostgresOperator(
-            task_id=f'Drop_dimension_table_{dimension_table}',
-            dag=dag,
-            postgres_conn_id=redshift_conn_id,
-            sql=SqlQueriesDrop.dimensions[dimension_table]
-            )
-            
-        create_dimension_table[dimension_table] = PostgresOperator(
-            task_id=f'Create_dimension_table_{dimension_table}',
-            dag=dag,
-            postgres_conn_id=redshift_conn_id,
-            sql=SqlQueriesCreate.dimensions[dimension_table]
-            )'''
 
         load_dimension_table[dimension_table] = LoadDimensionOperator(
             task_id=f'Load_dimension_table_{dimension_table}',
@@ -148,7 +94,8 @@ with DAG(
             redshift_conn_id=redshift_conn_id,
             redshift_schema=redshift_schema,
             redshift_table=dimension_table,
-            query=SqlQueriesInsert.dimensions[dimension_table]
+            query=SqlQueriesInsert.dimensions[dimension_table],
+            mode='truncate'
         )
 
         run_quality_checks = DataQualityOperator(
