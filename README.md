@@ -168,13 +168,13 @@ Four [custom operators](https://airflow.apache.org/docs/apache-airflow/stable/ho
 
 The code of these operators and additional helper classes can be found in `./plugins/operators` and `./plugins/helpers/sql_queries.py`.
 
-### Apache Airflow configuration
+### Initial set-up configuration
 
-The data pipeline needs to access certain services from AWS like S3 or Redshift. For this purpose it is necessary to set-up two [connections](https://airflow.apache.org/docs/apache-airflow/stable/howto/connection.html) with the following IDs:
+Before testing this repository it is necessary to go through the below steps:
 
-1. `aws_credentials`: this connection must be configured as `Amazon Web Services` and it will contain the AWS credentials. This is required, for example, to read data from S3. 
-
-2. `redshift_conn_id`: this connection must be configured as `Postgres` and it will encapsulate the endpoint, schema, login and password to access the Redshift cluster.
+1. Redshift cluster: since the data will be ingested into a DWH hosted in Redshift we need to create a cluster and make it accessible so we can insert such data. Taking a look into the pipeline one can notice that there are no steps for creating or dropping tables, therefore, the user must create the tables before running the pipeline. To do so, one can employ the SQL DDL statements in `./create_tables.sql`.
+2. The Airflow [connection](https://airflow.apache.org/docs/apache-airflow/stable/howto/connection.html) `aws_credentials` must be configured as `Amazon Web Services` and it will contain the AWS credentials required, for example, to read data from S3.
+3. The Airflow connection `redshift_conn_id` must be configured as `Postgres`. It will encapsulate the endpoint, schema, login and password to access the Redshift cluster.
 
 ## Requirements
 
