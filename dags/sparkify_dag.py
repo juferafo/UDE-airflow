@@ -6,7 +6,6 @@ from airflow.operators.postgres_operator import PostgresOperator
 
 from helpers import SqlQueriesCreate
 from helpers import SqlQueriesInsert
-from helpers import SqlQueriesDrop
 
 from operators import StageToRedshiftOperator
 from operators import LoadFactOperator
@@ -63,6 +62,42 @@ with DAG(
         redshift_table=dwh_star_tables['fact'],
         query=SqlQueriesInsert.fact['songplays']
     )
+
+    run_quality_check = DataQualityOperator(
+        task_id=f'Data_quality_check',
+        dag=dag,
+        redshift_conn_id=redshift_conn_id,
+        dq_checks=[
+            { 
+                'check_sql': 'SELECT COUNT(*) FROM public.songplays WHERE userid IS NULL', 
+                'expected_result': 0 
+                }, 
+            { 
+                'check_sql': 'SELECT COUNT(DISTINCT "level") FROM public.songplays', 
+                'expected_result': 2 
+                },
+            { 
+                'check_sql': 'SELECT COUNT(*) FROM public.artists WHERE name IS NULL', 
+                'expected_result': 0 
+                },
+            { 
+                'check_sql': 'SELECT COUNT(*) FROM public.songs WHERE title IS NULL', 
+                'expected_result': 0 
+                },
+            { 
+                'check_sql': 'SELECT COUNT(*) FROM public.users WHERE first_name IS NULL', 
+                'expected_result': 0 
+                },
+            { 
+                'check_sql': 'SELECT COUNT(*) FROM public."time" WHERE weekday IS NULL', 
+                'expected_result': 0 
+                },
+            { 
+                'check_sql': 'SELECT COUNT(*) FROM public.songplays AS songplays LEFT OUTER JOIN public.users AS users ON songplays.userid = users.userid WHERE users.userid IS NULL',
+                'expected_result': 0 
+                }
+            ]
+    )
     
     copy_s3_data = {}
 
@@ -98,15 +133,7 @@ with DAG(
             mode='truncate'
         )
 
-        run_quality_checks = DataQualityOperator(
-                task_id=f'Data_quality_{dimension_table}',
-                dag=dag,
-                aws_credentials_id=aws_conn_id,
-                redshift_conn_id=redshift_conn_id,
-                redshift_schema=redshift_schema,
-                redshift_table=dimension_table
-        )
-
         load_fact_table >> load_dimension_table[dimension_table] 
-        load_dimension_table[dimension_table] >> run_quality_checks
-        run_quality_checks >> end
+        load_dimension_table[dimension_table] >> run_quality_check
+    
+    run_quality_check >> end
