@@ -8,26 +8,61 @@ class DataQualityOperator(BaseOperator):
     @apply_defaults
     def __init__(
         self,
-        aws_credentials_id: str = None,
         redshift_conn_id: str = None,
-        redshift_schema: str = None,
-        redshift_table: str = None,
+        dq_checks: list = None,
         *args, 
         **kwargs
     ) -> None:
 
         super(DataQualityOperator, self).__init__(*args, **kwargs)
-        self.aws_credentials_id = aws_credentials_id
         self.redshift_conn_id = redshift_conn_id
-        self.redshift_schema = redshift_schema
-        self.redshift_table = redshift_table
-        self.query = f"""SELECT COUNT(*) FROM {self.redshift_schema}.{self.redshift_table}"""
-
+        self.dq_checks = dq_checks
 
     def execute(self, context):
         self.log.info("Running quality checks")
         
+        if len(self.dq_checks) == 0:
+            self.log.info("No data quality checks provided")
+            return
+
         redshift_hook = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+
+        tests_failed = []
+        tests_passed = []
+
+        for test in self.dq_checks:
+            sql_query = test.get('check_sql')
+            exp_result = test.get('expected_result')
+
+            try:
+                self.log.info(f"Executing query")
+                self.log.info(f"{sql_query}")
+                data = redshift_hook.get_records(sql_query)[0]
+
+            except Exception as exception:
+                self.log.info(f"Query failed: {exception}")
+
+            if exp_result != data[0]:
+                tests_failed.append(sql_query)
+
+            else:
+                tests_passed.append(sql_query)
+            
+        self.log.info(f"Tests failed: {len(tests_failed)}")
+        self.log.info(f"Tests passed: {len(tests_passed)}")
+
+        if len(tests_failed) == 0:
+            self.log.info("All data quality tests passed")
+
+
+
+
+
+
+
+
+
+
         data = redshift_hook.get_records(self.query)
         
         if len(data) < 1 or len(data[0]) < 1:
