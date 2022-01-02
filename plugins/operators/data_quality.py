@@ -53,25 +53,3 @@ class DataQualityOperator(BaseOperator):
 
         if len(tests_failed) == 0:
             self.log.info("All data quality tests passed")
-
-
-
-
-
-
-
-
-
-
-        data = redshift_hook.get_records(self.query)
-        
-        if len(data) < 1 or len(data[0]) < 1:
-            raise ValueError(f"Data quality check failed. {self.redshift_schema}{self.redshift_table} returned no results")
-            
-        num_records = data[0][0]
-        
-        if num_records < 1:
-            raise ValueError(f"Data quality check failed. {self.redshift_schema}{self.redshift_table} contained 0 rows")
-            
-        self.log.info(f"Data quality on table {self.redshift_schema}{self.redshift_table} check passed with {num_records} records")
-        
