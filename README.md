@@ -140,17 +140,7 @@ As mentioned in the introduction, Apache Airflow is an orchestration tool employ
 
 ### DAG pipeline
 
-The DAG can be found in the script `./dags/sparkify_dag.py` and, although it is executed from `Start` to `End` one can find the following division in the pipeline:
-
-1. The set of tasks that copy the raw `events` and `songs` data into the Redshift Staging Area
-
-![staging_etl](./figs/staging_etl.png)
-
-2. The set of tasks that read the `events` and `songs` in the Redshift Staging Area and put this information into a star-schema.
-
-![star_schema_etl](./figs/start_schema_etl.png)
-
-Below you can find the DAG pipeline from `Start` to `End`.
+The DAG can be found in the script `./dags/sparkify_dag.py` and below you can find the DAG pipeline from `Start` to `End`.
 
 ![dag](./figs/dag.png)
 
