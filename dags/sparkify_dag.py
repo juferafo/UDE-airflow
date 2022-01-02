@@ -14,7 +14,7 @@ from operators import DataQualityOperator
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2022, 1, 2),
+    'start_date': datetime(2019, 1, 12),
     'depends_on_past': False,
     'retries': 3,
     'retry_delay': timedelta(minutes=5),
@@ -47,7 +47,7 @@ with DAG(
     'sparkify_pipeline',
     default_args=default_args,
     description='Load and transform data in Redshift with Airflow',
-    schedule_interval=None
+    schedule_interval='@hourly'
 ) as dag:
 
     start = DummyOperator(task_id='Start', dag=dag)
